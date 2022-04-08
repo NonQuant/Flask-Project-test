@@ -1,7 +1,8 @@
 from flask import Flask
 from flask_wtf import FlaskForm
-from wtforms import StringField, IntegerField, SubmitField, EmailField
+from wtforms import StringField, IntegerField, SubmitField
 from wtforms.validators import DataRequired
+from wtforms.fields import EmailField
 
 
 class DepartmentsForm(FlaskForm):
