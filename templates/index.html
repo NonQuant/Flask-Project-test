@@ -1,0 +1,36 @@
+{% extends "base.html"%}
+{% block content %}
+<h3 class="row justify-content-center">Works log</h3>
+{% if current_user.is_authenticated %}
+    <a href="/addjob" class="btn btn-secondary" action="">Add a job</a>
+    <a href="/departments" class="btn btn-secondary" action="">Departments</a>
+{% endif %}
+
+{% for job in jobs %}
+    <div class="container job_table">
+        <h3 class="row justify-content-start">Action log # {{job.id}}</h3>
+        <div class="row first-row">
+            <div class="col-5 pd-col">Title of activity</div>
+            <div class="col pd-col">Team leader</div>
+            <div class="col pd-col">Duration</div>
+            <div class="col pd-col">List of collaborators</div>
+            <div class="col pd-col">Is finished</div>
+        </div>
+        <div class="row second-row">
+            <div class="col-5 pd-col">{{job.job}}</div>
+            <div class="col pd-col">{{worker_dict[job.team_leader]}}</div>
+            <div class="col pd-col">{{job.work_size}}</div>
+            <div class="col pd-col">{{job.collaborators}}</div>
+            {% if job.is_finished %}
+                <div class="col green-col pd-col">Is finished</div>
+            {% else %}
+                <div class="col red-col pd-col">Is not finished</div>
+            {% endif %}
+        </div>
+    </div>
+    {% if job.id in to_edit %}
+        <a href="/editjob/{{job.id}}" class="btn btn-warning">Edit job</a>
+        <a href="/deletejob/{{job.id}}" class="btn btn-danger">Delete job</a>
+    {% endif %}
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html"%}
+{% block content %}
+<h3 class="row justify-content-center">List of departments</h3>
+{% if current_user.is_authenticated %}
+    <a href="/index" class="btn btn-secondary" action="">Back to Jobs</a>
+    <a href="/adddepartment" class="btn btn-secondary" action="">Add a Department</a>
+{% endif %}
+{% for dep in deps %}
+    <div class="container job_table">
+        <h3 class="row justify-content-start">Department # {{dep.id}}</h3>
+        <div class="row first-row">
+            <div class="col-6 pd-col">Title of department</div>
+            <div class="col pd-col">Chief</div>
+            <div class="col pd-col">Members</div>
+            <div class="col pd-col">Department Email</div>
+        </div>
+        <div class="row second-row">
+            <div class="col-6 pd-col">{{ dep.title }}</div>
+            <div class="col pd-col">{{ worker_dict[dep.chief] }}</div>
+            <div class="col pd-col">{{ dep.members }}</div>
+            <div class="col pd-col">{{ dep.email }}</div>
+        </div>
+    </div>
+    {% if dep.id in to_edit %}
+        <a href="/editdepartment/{{dep.id}}" class="btn btn-warning">Edit Department</a>
+        <a href="/deletedepartment/{{dep.id}}" class="btn btn-danger">Delete Department</a>
+    {% endif %}
+{% endfor %}
+{% endblock %}
