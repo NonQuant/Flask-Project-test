@@ -23,7 +23,7 @@ def get_users():
     users = db_sess.query(User).all()
     return jsonify(
         {
-            "users": [user.to_dict(only=("id", "surname", "name", "age",
+            "users": [user.to_dict(only=("id", "surname", "name", "age", "city_from",
                                          "position", "speciality", "address", "email", "modified_date")) for user in users]
         }
     )
@@ -40,7 +40,7 @@ def get_one_user(user_id):
         )
     return jsonify(
         {
-            "users": user.to_dict(only=("id", "surname", "name", "age",
+            "users": user.to_dict(only=("id", "surname", "name", "age", "city_from",
                                         "position", "speciality", "address", "email", "modified_date"))
         }
     )
@@ -50,7 +50,7 @@ def create_users():
     if not request.json:
         return jsonify({"error": "Empty request"})
     elif not all(key in request.json for key in 
-                 ["surname", "name", "age",
+                 ["surname", "name", "age", "city_from",
                   "position", "speciality", "address", "email", "password"]):
         return jsonify({"error": "Bad request"})
     db_sess = db_session.create_session()
@@ -70,6 +70,7 @@ def create_users():
     users.speciality = request.json["speciality"]
     users.address = request.json["address"]
     users.email = request.json["email"]
+    users.city_from = request.json["city_from"]
     users.set_password(request.json["password"])
 
     if request.json.get("modified_date"):
@@ -102,7 +103,7 @@ def edit_users(users_id):
     if not user:
         return jsonify({"error": "Not found"})
     for i in data.keys():
-        if i not in ("surname", "name", "age", "position", "speciality", "address", "email", "password"):
+        if i not in ("surname", "name", "age", "position", "speciality", "address", "email", "password", "city_from"):
             return jsonify({"error": "Bad request"})
         if i == "surname":
             user.surname = data[i]
@@ -120,5 +121,7 @@ def edit_users(users_id):
             user.email = data[i]
         if i == "password":
             user.set_password(data[i])
+        if i == "city_from":
+            user.city_from = data[i]
     db_sess.commit()
     return jsonify({"success": "OK"})

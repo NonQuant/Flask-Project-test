@@ -10,10 +10,20 @@ from forms.login import LoginForm
 from data.users import User
 from forms.jobs import JobsForm
 from forms.user import RegisterForm
-from data import jobs_api
+from data import jobs_api, users_api
+from requests import get
+from flask_restful import Api
+from data import users_resources, jobs_resources
+import sqlalchemy_serializer
+
 
 
 app = Flask(__name__)
+api = Api(app)
+api.add_resource(users_resources.UsersResource, "/api/v2/users/<int:user_id>")
+api.add_resource(users_resources.UsersListResource, "/api/v2/users")
+api.add_resource(jobs_resources.JobsResource, "/api/v2/jobs/<int:job_id>")
+api.add_resource(jobs_resources.JobsListResource, "/api/v2/jobs")
 app.config['SECRET_KEY'] = 'yandexlyceum_secret_key'
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -28,6 +38,7 @@ def load_user(user_id):
 def main():
     db_session.global_init("db/blogs.db")
     app.register_blueprint(jobs_api.blueprint)
+    app.register_blueprint(users_api.blueprint)
     app.run()
 
 
@@ -68,7 +79,8 @@ def reqister():
             age=form.age.data,
             position=form.position.data,
             speciality=form.speciality.data,
-            address=form.address.data
+            address=form.address.data,
+            city_from=form.city_from.data
         )
         user.set_password(form.password.data)
         db_sess.add(user)
@@ -264,6 +276,31 @@ def edit_department(id):
         abort(404)
     return render_template("add_dep.html", title="Editing a department", current_user=current_user,
                            form=form)
+
+
+@app.route("/users_show/<int:user_id>")
+def users_show(user_id):
+    user_data = get(f"http://localhost:5000/api/users/{user_id}").json()
+    if user_data.get("error"):
+        abort(404)
+    city: str = user_data["users"]["city_from"]
+    city = city.replace(" ", "+")
+    geocoder_request = f"https://geocode-maps.yandex.ru/1.x?geocode={city}&kind=locality&apikey=40d1649f-0493-4b70-98ba-98533de7710b&format=json"
+    response = get(geocoder_request)
+
+    if response:
+        json = response.json()
+        toponym = json["response"]["GeoObjectCollection"]["featureMember"][0]["GeoObject"]
+        coors: str = toponym["Point"]["pos"].replace(" ", ",")
+    map_request = f"http://static-maps.yandex.ru/1.x/?ll={coors}&spn=0.08,0.08&l=sat"
+    response = get(map_request)
+    img = "./static/hometown.png"
+    with open(img, "wb") as file:
+        file.write(response.content)
+    name = user_data["users"]["name"] + " " + user_data["users"]["surname"]
+    city_name = user_data["users"]["city_from"]
+    return render_template("show_city.html", title="Hometown", current_user=current_user, name=name, city_name=city_name)
+
 
 if __name__ == '__main__':
     main()
